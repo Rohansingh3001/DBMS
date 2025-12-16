@@ -1,0 +1,9 @@
+# Ignore all other markdown files except the main DBMS solutions
+dbms_2023_solutions.md
+dbms_exam_solutions.md
+EXAM_PRESENTATION.md
+PAPER_PUBLICATION_GUIDE.md
+PAPER_RESULTS_TABLE.md
+PROJECT_SUMMARY.md
+QUICKSTART.md
+RESEARCH_PAPER_ROADMAP.md
