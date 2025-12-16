@@ -1631,6 +1631,1016 @@ ORDER BY Total_Fine DESC;
 
 ---
 
+### 21a. Armstrong's Axioms (5 marks)
+
+**Armstrong's Axioms** are a set of inference rules used to derive all functional dependencies in a relational database. They form the foundation for reasoning about functional dependencies and are named after William W. Armstrong.
+
+#### **Primary Axioms (Sound and Complete):**
+
+---
+
+#### **1. Reflexivity (Trivial FD)**
+
+**Rule:** If Y ⊆ X, then X → Y
+
+**Explanation:** A set of attributes always determines its subset.
+
+**Examples:**
+```
+{Emp_ID, Name} → {Emp_ID}
+{Emp_ID, Name} → {Name}
+{Student_ID, Course_ID, Grade} → {Student_ID, Course_ID}
+```
+
+**Why it's called Trivial:** The dependent is already part of the determinant, so this dependency is always true and not particularly informative.
+
+---
+
+#### **2. Augmentation (Addition)**
+
+**Rule:** If X → Y, then XZ → YZ for any attribute set Z
+
+**Explanation:** Adding the same attributes to both sides of a functional dependency preserves the dependency.
+
+**Examples:**
+```
+Given: Emp_ID → Salary
+Then: {Emp_ID, Dept_ID} → {Salary, Dept_ID}
+
+Given: Student_ID → Student_Name
+Then: {Student_ID, Course_ID} → {Student_Name, Course_ID}
+```
+
+**Proof:**
+- If X determines Y
+- And we add Z to both sides
+- Since X → Y, whenever two tuples have the same X, they have the same Y
+- Adding Z maintains this property
+
+---
+
+#### **3. Transitivity**
+
+**Rule:** If X → Y and Y → Z, then X → Z
+
+**Explanation:** Functional dependencies are transitive, like mathematical implications.
+
+**Examples:**
+```
+Given: Emp_ID → Dept_ID
+And: Dept_ID → Dept_Name
+Then: Emp_ID → Dept_Name
+
+Given: Student_ID → Course_ID
+And: Course_ID → Instructor
+Then: Student_ID → Instructor
+```
+
+**Real-world Example:**
+```
+Employee Table:
+Emp_ID → Dept_ID (Employee determines department)
+Dept_ID → Manager (Department determines manager)
+Therefore: Emp_ID → Manager (Employee determines manager)
+```
+
+---
+
+#### **Secondary/Derived Rules:**
+
+These can be proven using the primary axioms.
+
+---
+
+#### **4. Union**
+
+**Rule:** If X → Y and X → Z, then X → YZ
+
+**Example:**
+```
+Given: Emp_ID → Name
+And: Emp_ID → Salary
+Then: Emp_ID → {Name, Salary}
+```
+
+---
+
+#### **5. Decomposition (Projectivity)**
+
+**Rule:** If X → YZ, then X → Y and X → Z
+
+**Example:**
+```
+Given: Emp_ID → {Name, Salary}
+Then: Emp_ID → Name
+And: Emp_ID → Salary
+```
+
+---
+
+#### **6. Pseudo-transitivity**
+
+**Rule:** If X → Y and WY → Z, then WX → Z
+
+**Example:**
+```
+Given: Dept_ID → Budget
+And: {Project_ID, Budget} → Allocation
+Then: {Project_ID, Dept_ID} → Allocation
+```
+
+---
+
+#### **Properties of Armstrong's Axioms:**
+
+1. **Sound:** Only valid functional dependencies can be derived
+2. **Complete:** All valid functional dependencies can be derived
+3. **Minimal:** Cannot be reduced further while maintaining completeness
+
+---
+
+#### **Applications:**
+
+1. **Finding Closure:** Compute X⁺ (all attributes determined by X)
+2. **Finding Candidate Keys:** Determine minimal superkeys
+3. **Normalization:** Identify dependencies causing anomalies
+4. **Schema Design:** Validate relational schema correctness
+5. **Dependency Preservation:** Check if decomposition preserves FDs
+
+---
+
+#### **Example: Finding Attribute Closure**
+
+**Given:**
+- Relation R(A, B, C, D, E)
+- FDs: A → B, B → C, CD → E
+
+**Find: A⁺ (closure of A)**
+
+**Steps:**
+1. Start with A⁺ = {A}
+2. Using A → B: A⁺ = {A, B}
+3. Using B → C: A⁺ = {A, B, C}
+4. Cannot use CD → E (don't have D)
+5. **Result: A⁺ = {A, B, C}**
+
+**Conclusion:** A determines B and C but not D or E.
+
+---
+
+### 21b. E-R Diagram for AC Product Tracking System (10 marks)
+
+#### **System Description:**
+
+AC (shipping company) tracks shipped items through a company-wide information system. The system manages:
+- **Shipped Items:** Characterized by item number, weight, dimensions, insurance, destination, delivery date
+- **Retail Centers:** Characterized by type, uniqueID, address
+- **Transportation Events:** Flights and truck deliveries with scheduleNumber, type, deliveryRoute
+
+---
+
+#### **Entity Identification:**
+
+**1. SHIPPED_ITEM**
+- **Attributes:**
+  - Item_Number (PK) - Unique identifier
+  - Weight
+  - Dimensions (could be composite: Length, Width, Height)
+  - Insurance_Amount
+  - Destination
+  - Final_Delivery_Date
+  - Current_Location
+- **Type:** Strong Entity
+
+**2. RETAIL_CENTER**
+- **Attributes:**
+  - Unique_ID (PK)
+  - Center_Type (e.g., warehouse, distribution center, store)
+  - Address (composite: Street, City, State, ZIP)
+- **Type:** Strong Entity
+
+**3. TRANSPORTATION_EVENT**
+- **Attributes:**
+  - Schedule_Number (PK)
+  - Event_Type (e.g., flight, truck)
+  - Delivery_Route
+  - Departure_Time
+  - Arrival_Time
+- **Type:** Strong Entity
+
+---
+
+#### **Relationship Identification:**
+
+**1. RECEIVED_AT** (Shipped_Item ↔ Retail_Center)
+- **Type:** Many-to-One (M:1)
+- **Cardinality:** 
+  - One item is received at one retail center
+  - One retail center receives many items
+- **Attributes:** Receipt_Date, Receipt_Time
+
+**2. TRANSPORTED_BY** (Shipped_Item ↔ Transportation_Event)
+- **Type:** Many-to-Many (M:N)
+- **Cardinality:**
+  - One item can be transported by multiple events (multi-leg journey)
+  - One transportation event carries multiple items
+- **Attributes:** Loading_Time, Sequence_Number (order in journey)
+
+**3. DEPARTS_FROM / ARRIVES_AT** (Transportation_Event ↔ Retail_Center)
+- **Type:** Many-to-One for each
+- **Cardinality:**
+  - One event departs from one center
+  - One event arrives at one center
+  - One center can have multiple departures/arrivals
+
+---
+
+#### **E-R Diagram:**
+
+```
+┌─────────────────────────┐
+│    SHIPPED_ITEM         │
+│─────────────────────────│
+│ Item_Number (PK)        │
+│ Weight                  │
+│ Dimensions              │
+│ Insurance_Amount        │
+│ Destination             │
+│ Final_Delivery_Date     │
+└──────────┬──────────────┘
+           │
+           │ M (An item uses multiple transport events)
+           │
+     ╔═════╧══════════════════╗
+     ║   TRANSPORTED_BY       ║  (M:N Relationship)
+     ║────────────────────────║
+     ║ Loading_Time           ║
+     ║ Sequence_Number        ║
+     ╚═════╤══════════════════╝
+           │ N (A transport event carries many items)
+           │
+┌──────────┴─────────────────┐
+│  TRANSPORTATION_EVENT      │
+│────────────────────────────│
+│ Schedule_Number (PK)       │
+│ Event_Type                 │
+│ Delivery_Route             │
+│ Departure_Time             │
+│ Arrival_Time               │
+└──────┬──────────────┬──────┘
+       │              │
+       │ M            │ M
+       │              │
+  ╔════╧═══╗    ╔════╧═══════╗
+  ║DEPARTS ║    ║ ARRIVES_AT ║
+  ║  FROM  ║    ╚════╤═══════╝
+  ╚════╤═══╝         │ 1
+       │ 1           │
+       │             │
+┌──────┴─────────────┴────────┐
+│     RETAIL_CENTER           │
+│─────────────────────────────│
+│ Unique_ID (PK)              │
+│ Center_Type                 │
+│ Address                     │
+└──────────┬──────────────────┘
+           │
+           │ 1
+           │
+    ╔══════╧════════╗
+    ║  RECEIVED_AT  ║  (M:1 Relationship)
+    ║───────────────║
+    ║ Receipt_Date  ║
+    ║ Receipt_Time  ║
+    ╚══════╤════════╝
+           │ M
+           │
+┌──────────┴──────────────┐
+│    SHIPPED_ITEM         │
+└─────────────────────────┘
+```
+
+---
+
+#### **Detailed Diagram with All Relationships:**
+
+```
+                   ┌─────────────────────┐
+                   │   SHIPPED_ITEM      │
+                   │─────────────────────│
+                   │ Item_Number (PK)    │
+                   │ Weight              │
+                   │ Length              │
+                   │ Width               │
+                   │ Height              │
+                   │ Insurance_Amount    │
+                   │ Destination         │
+                   │ Final_Delivery_Date │
+                   └──────┬──────┬───────┘
+                          │      │
+                     (M)  │      │ (M)
+                          │      │
+        ╔═════════════════╧══╗   │
+        ║  TRANSPORTED_BY    ║   │
+        ║────────────────────║   │
+        ║ Loading_Time       ║   │
+        ║ Unloading_Time     ║   │
+        ║ Sequence_Number    ║   │
+        ╚═════════════════╤══╝   │
+                     (N)  │      │
+                          │      │
+        ┌─────────────────┴──────┘
+        │                 (M)
+        │           ╔═════════════╗
+        │           ║RECEIVED_AT  ║
+        │           ║─────────────║
+        │           ║Receipt_Date ║
+        │           ╚═════╤═══════╝
+        │                 │ (1)
+        │                 │
+┌───────┴──────────────┐  │
+│TRANSPORTATION_EVENT  │  │
+│──────────────────────│  │
+│Schedule_Number (PK)  │  │
+│Event_Type           │  │
+│Delivery_Route        │  │
+│Departure_Time        │  │
+│Arrival_Time          │  │
+└───┬──────────────┬───┘  │
+    │              │      │
+(M) │              │ (M)  │
+    │              │      │
+╔═══╧════╗    ╔════╧════╗ │
+║DEPARTS ║    ║ARRIVES  ║ │
+║  FROM  ║    ║   AT    ║ │
+╚═══╤════╝    ╚════╤════╝ │
+(1) │              │ (1)  │
+    │              │      │
+    └──────┬───────┘      │
+           │              │
+    ┌──────┴──────────────┴─┐
+    │   RETAIL_CENTER       │
+    │───────────────────────│
+    │ Unique_ID (PK)        │
+    │ Center_Type           │
+    │ Street                │
+    │ City                  │
+    │ State                 │
+    │ ZIP_Code              │
+    └───────────────────────┘
+```
+
+---
+
+#### **Cardinality Constraints:**
+
+1. **SHIPPED_ITEM ─(M)─ TRANSPORTED_BY ─(N)─ TRANSPORTATION_EVENT**
+   - One shipped item can use multiple transportation events (multi-leg journey)
+   - One transportation event transports multiple shipped items
+
+2. **SHIPPED_ITEM ─(M)─ RECEIVED_AT ─(1)─ RETAIL_CENTER**
+   - Multiple items are received at one retail center
+   - Each item is initially received at exactly one retail center
+
+3. **TRANSPORTATION_EVENT ─(M)─ DEPARTS_FROM ─(1)─ RETAIL_CENTER**
+   - Multiple events can depart from one retail center
+   - Each event departs from exactly one retail center
+
+4. **TRANSPORTATION_EVENT ─(M)─ ARRIVES_AT ─(1)─ RETAIL_CENTER**
+   - Multiple events can arrive at one retail center
+   - Each event arrives at exactly one retail center
+
+---
+
+#### **Relational Schema:**
+
+```sql
+SHIPPED_ITEM(
+    Item_Number PRIMARY KEY,
+    Weight DECIMAL(10,2),
+    Length DECIMAL(10,2),
+    Width DECIMAL(10,2),
+    Height DECIMAL(10,2),
+    Insurance_Amount DECIMAL(12,2),
+    Destination VARCHAR(200),
+    Final_Delivery_Date DATE,
+    Received_Center_ID INT,
+    FOREIGN KEY (Received_Center_ID) REFERENCES RETAIL_CENTER(Unique_ID)
+)
+
+RETAIL_CENTER(
+    Unique_ID PRIMARY KEY,
+    Center_Type VARCHAR(50),
+    Street VARCHAR(100),
+    City VARCHAR(50),
+    State VARCHAR(50),
+    ZIP_Code VARCHAR(10)
+)
+
+TRANSPORTATION_EVENT(
+    Schedule_Number PRIMARY KEY,
+    Event_Type VARCHAR(20),
+    Delivery_Route VARCHAR(100),
+    Departure_Time DATETIME,
+    Arrival_Time DATETIME,
+    Departure_Center_ID INT,
+    Arrival_Center_ID INT,
+    FOREIGN KEY (Departure_Center_ID) REFERENCES RETAIL_CENTER(Unique_ID),
+    FOREIGN KEY (Arrival_Center_ID) REFERENCES RETAIL_CENTER(Unique_ID)
+)
+
+TRANSPORTED_BY(
+    Item_Number INT,
+    Schedule_Number INT,
+    Loading_Time DATETIME,
+    Unloading_Time DATETIME,
+    Sequence_Number INT,
+    PRIMARY KEY (Item_Number, Schedule_Number),
+    FOREIGN KEY (Item_Number) REFERENCES SHIPPED_ITEM(Item_Number),
+    FOREIGN KEY (Schedule_Number) REFERENCES TRANSPORTATION_EVENT(Schedule_Number)
+)
+```
+
+---
+
+### 22. Short Notes (15 marks)
+
+---
+
+#### a) Concurrent Execution (5 marks)
+
+**Concurrent Execution** refers to the interleaved execution of multiple transactions simultaneously in a database system.
+
+---
+
+#### **Definition:**
+
+When multiple transactions execute at the same time (or appear to execute simultaneously), the system must coordinate their operations to maintain database consistency.
+
+---
+
+#### **Why Concurrent Execution?**
+
+1. **Improved Throughput:** More transactions completed per unit time
+2. **Better Resource Utilization:** CPU works while I/O operations happen
+3. **Reduced Waiting Time:** Short transactions don't wait for long ones
+4. **Better Response Time:** System appears more responsive to users
+
+---
+
+#### **Execution Models:**
+
+**1. Serial Execution:**
+```
+T1: ─────────────────────►
+T2:                        ─────────────────────►
+T3:                                              ─────────────────────►
+
+Slow but always correct
+```
+
+**2. Concurrent Execution:**
+```
+T1: ─────────    ─────────    ─────────►
+T2:       ─────────    ─────────    ─────────►
+T3:             ─────────    ─────────►
+
+Fast but needs concurrency control
+```
+
+---
+
+#### **Advantages:**
+
+1. **Increased Processor and Disk Utilization:**
+   - While one transaction waits for disk I/O, another can use CPU
+   
+2. **Reduced Average Response Time:**
+   - Short transactions complete quickly without waiting
+
+3. **Better System Throughput:**
+   - More transactions processed per second
+
+---
+
+#### **Problems with Concurrent Execution:**
+
+**1. Lost Update Problem:**
+```
+T1: Read(X=100)
+T2:              Read(X=100)
+T1: X = X + 50 (X=150)
+T2:                       X = X + 30 (X=130)
+T1: Write(X=150)
+T2:              Write(X=130)  ← T1's update lost!
+```
+
+**2. Dirty Read Problem (Temporary Update):**
+```
+T1: Read(X=100)
+T1: X = X + 50 (X=150)
+T1: Write(X=150)
+T2:              Read(X=150)  ← Reading uncommitted data
+T1: ROLLBACK (X=100)
+T2: Using wrong value (150 instead of 100)
+```
+
+**3. Unrepeatable Read:**
+```
+T1: Read(X=100)
+T2:              Read(X=100)
+T2:              X = X + 50 (X=150)
+T2:              Write(X=150)
+T2:              COMMIT
+T1: Read(X=150)  ← Different value in same transaction!
+```
+
+**4. Phantom Read:**
+```
+T1: SELECT COUNT(*) FROM Employee WHERE Salary > 50000
+    → Result: 10 rows
+T2:              INSERT INTO Employee VALUES (...)  -- Salary = 60000
+T2:              COMMIT
+T1: SELECT COUNT(*) FROM Employee WHERE Salary > 50000
+    → Result: 11 rows (Phantom row appeared!)
+```
+
+---
+
+#### **Concurrency Control Mechanisms:**
+
+1. **Locking Protocols:**
+   - Shared locks (read)
+   - Exclusive locks (write)
+   - Two-phase locking (2PL)
+
+2. **Timestamp-Based Protocols:**
+   - Each transaction gets a timestamp
+   - Operations ordered by timestamp
+
+3. **Optimistic Concurrency Control:**
+   - Execute without locks
+   - Validate before commit
+
+4. **Multiversion Concurrency Control (MVCC):**
+   - Multiple versions of data
+   - Readers don't block writers
+
+---
+
+#### **Schedule in Concurrent Execution:**
+
+**Schedule:** Chronological order of operations from concurrent transactions
+
+**Example:**
+```
+Schedule S1:
+T1: Read(A)
+T2:         Read(A)
+T1: A = A - 50
+T1: Write(A)
+T2:         A = A + 100
+T2:         Write(A)
+```
+
+**Serial Schedule:** T1 → T2 or T2 → T1 (always correct)
+**Serializable Schedule:** Equivalent to some serial schedule (correct)
+**Non-serializable Schedule:** Not equivalent to any serial schedule (may be incorrect)
+
+---
+
+#### b) Two-Phase Locking Protocol (2PL) (5 marks)
+
+**Two-Phase Locking (2PL)** is a concurrency control protocol that ensures serializability by dividing transaction execution into two distinct phases: Growing Phase and Shrinking Phase.
+
+---
+
+#### **Definition:**
+
+A transaction must acquire all locks before releasing any lock. The protocol guarantees that the schedule is conflict-serializable.
+
+---
+
+#### **Two Phases:**
+
+**Phase 1: Growing Phase (Expanding Phase)**
+- Transaction can **acquire locks** (shared or exclusive)
+- Transaction **cannot release** any lock
+- Phase ends when transaction acquires its last lock
+- Also called **lock acquisition phase**
+
+**Phase 2: Shrinking Phase (Contracting Phase)**
+- Transaction can **release locks**
+- Transaction **cannot acquire** new locks
+- Phase begins when first lock is released
+- Also called **lock release phase**
+
+---
+
+#### **Graphical Representation:**
+
+```
+Number
+of      │        Growing Phase    │    Shrinking Phase
+Locks   │                         │
+Held    │          ╱──────────╲   │
+        │         ╱            ╲  │
+        │        ╱              ╲ │
+        │       ╱                ╲│
+        │      ╱                  ╲
+        │_____╱____________________╲_______________
+                    │               │
+                    │               │
+              Lock Point      Release Begins
+            (Maximum locks)
+```
+
+---
+
+#### **Lock Point:**
+
+The point where a transaction has acquired all its locks and is about to enter the shrinking phase. Transactions can be serialized in the order of their lock points.
+
+---
+
+#### **Example:**
+
+**Transaction T1:**
+```
+1. Lock-S(A)      ← Growing Phase starts
+2. Read(A)
+3. Lock-X(B)      ← Still Growing Phase
+4. Read(B)
+5. B = B + A
+6. Write(B)
+7. Unlock(A)      ← Shrinking Phase starts (Lock Point reached)
+8. Unlock(B)      ← Still Shrinking Phase
+```
+
+**Transaction T2:**
+```
+1. Lock-S(C)      ← Growing Phase
+2. Read(C)
+3. Lock-X(D)      ← Still Growing
+4. Read(D)
+5. D = D * C
+6. Write(D)
+7. Unlock(C)      ← Shrinking Phase (Lock Point)
+8. Unlock(D)
+```
+
+---
+
+#### **Types of Two-Phase Locking:**
+
+---
+
+**1. Basic 2PL:**
+- Follows two-phase rule strictly
+- **Problem:** Can lead to cascading rollbacks
+- **Advantage:** Simple to implement
+
+---
+
+**2. Conservative (Static) 2PL:**
+- Transaction acquires **all locks** at the beginning
+- If any lock unavailable, waits for all
+- No growing phase during execution
+- **Advantage:** Deadlock-free
+- **Disadvantage:** Difficult to predict all required locks
+
+**Example:**
+```
+T1: Lock-All(A, B, C)  ← Acquire everything first
+    Read(A)
+    Read(B)
+    Write(C)
+    Unlock-All(A, B, C)
+```
+
+---
+
+**3. Strict 2PL:**
+- Transaction holds **all exclusive locks** until commit/abort
+- Shared locks can be released during shrinking phase
+- **Advantage:** Prevents cascading rollbacks
+- **Most commonly used** in practice
+
+**Example:**
+```
+T1: Lock-X(A)
+    Write(A)
+    Lock-X(B)
+    Write(B)
+    -- All X locks held until commit --
+    COMMIT
+    Unlock(A)
+    Unlock(B)
+```
+
+---
+
+**4. Rigorous 2PL:**
+- Holds **all locks (both shared and exclusive)** until commit/abort
+- Strictest form of 2PL
+- **Advantage:** Maximum isolation, prevents all anomalies
+- **Disadvantage:** Reduced concurrency
+
+---
+
+#### **Advantages of 2PL:**
+
+1. **Guarantees Serializability:** Schedule is always conflict-serializable
+2. **Widely Used:** Implemented in most commercial DBMS
+3. **Simple to Implement:** Clear rules for lock acquisition/release
+4. **Prevents Inconsistencies:** Protects from lost updates and dirty reads
+
+---
+
+#### **Disadvantages of 2PL:**
+
+1. **Deadlocks Possible:**
+```
+T1: Lock-X(A)
+T2:          Lock-X(B)
+T1: Lock-X(B)  ← Waits for T2
+T2:          Lock-X(A)  ← Waits for T1  [DEADLOCK!]
+```
+
+2. **Cascading Rollbacks (in Basic 2PL):**
+```
+T1: Lock-X(A), Write(A), Unlock(A)
+T2:                      Lock-X(A), Read(A)
+T1: ROLLBACK  ← T2 must also rollback (read dirty data)
+```
+
+3. **Reduced Concurrency:**
+   - Locks held longer than necessary
+   - Transactions wait for locks
+
+4. **Starvation Possible:**
+   - Long transactions may hold locks indefinitely
+   - Short transactions wait forever
+
+---
+
+#### **Deadlock Handling in 2PL:**
+
+**Prevention:**
+- Lock all resources at once (Conservative 2PL)
+- Order resources (always lock in same order)
+
+**Detection:**
+- Wait-for graph
+- Timeout mechanisms
+
+**Recovery:**
+- Abort one transaction (victim selection)
+- Rollback and restart
+
+---
+
+#### c) Serializability (5 marks)
+
+**Serializability** is a property of a transaction schedule that ensures concurrent execution produces the same result as some serial execution of the same transactions.
+
+---
+
+#### **Definition:**
+
+A schedule is **serializable** if it is equivalent to a serial schedule (where transactions execute one after another with no interleaving).
+
+---
+
+#### **Why Serializability?**
+
+- **Goal:** Allow concurrent execution while maintaining correctness
+- **Guarantee:** Database consistency despite interleaved operations
+- **Standard:** Gold standard for concurrency control correctness
+
+---
+
+#### **Serial Schedule:**
+
+Transactions execute completely one after another (no overlap).
+
+**Example:**
+```
+Serial Schedule 1 (T1 → T2):
+T1: Read(A), A=A-50, Write(A), Read(B), B=B+50, Write(B)
+T2:                                                       Read(A), A=A*2, Write(A)
+
+Serial Schedule 2 (T2 → T1):
+T2: Read(A), A=A*2, Write(A)
+T1:                          Read(A), A=A-50, Write(A), Read(B), B=B+50, Write(B)
+```
+
+**Properties:**
+- Always correct (maintains consistency)
+- Low concurrency (poor performance)
+- Used as reference for correctness
+
+---
+
+#### **Types of Serializability:**
+
+---
+
+### **1. Conflict Serializability**
+
+**Definition:** A schedule is conflict-serializable if it can be transformed into a serial schedule by swapping non-conflicting operations.
+
+#### **Conflicting Operations:**
+
+Two operations conflict if:
+1. They belong to **different transactions**
+2. They access the **same data item**
+3. At least one is a **Write** operation
+
+**Conflict Types:**
+```
+Read-Write (R-W) Conflict:  T1: Read(X)   T2: Write(X)
+Write-Read (W-R) Conflict:  T1: Write(X)  T2: Read(X)
+Write-Write (W-W) Conflict: T1: Write(X)  T2: Write(X)
+```
+
+**Non-Conflicting:**
+```
+Read-Read: T1: Read(X)  T2: Read(X)  ← Can be swapped
+```
+
+---
+
+#### **Testing Conflict Serializability:**
+
+**Method: Precedence Graph (Serialization Graph)**
+
+**Steps:**
+1. Create a node for each transaction
+2. Draw edge Ti → Tj if Ti conflicts with Tj and Ti's operation comes first
+3. If graph is **acyclic** → Conflict Serializable
+4. If graph has **cycle** → Not Conflict Serializable
+
+---
+
+#### **Example 1: Conflict Serializable Schedule**
+
+```
+Schedule S:
+T1: Read(A)
+T2:         Read(A)
+T1: Write(A)
+T2:         Write(A)
+T1: Read(B)
+T2:         Read(B)
+T1: Write(B)
+T2:         Write(B)
+
+Precedence Graph:
+T1 → T2  (T1's Write(A) before T2's Write(A))
+T1 → T2  (T1's Write(B) before T2's Write(B))
+
+Graph: T1 ──→ T2  (No cycle)
+
+Result: CONFLICT SERIALIZABLE
+Equivalent to serial schedule: T1 → T2
+```
+
+---
+
+#### **Example 2: Non-Conflict Serializable Schedule**
+
+```
+Schedule S:
+T1: Read(A)
+T2:         Read(A)
+T2:         Write(A)
+T1: Write(A)
+
+Precedence Graph:
+T1 → T2  (T1's Read(A) before T2's Write(A))
+T2 → T1  (T2's Write(A) before T1's Write(A))
+
+Graph: T1 ←→ T2  (CYCLE!)
+
+Result: NOT CONFLICT SERIALIZABLE
+```
+
+---
+
+### **2. View Serializability**
+
+**Definition:** A schedule is view-serializable if it is view-equivalent to a serial schedule.
+
+#### **View Equivalence Conditions:**
+
+Two schedules S1 and S2 are view-equivalent if:
+
+1. **Initial Read:** If Ti reads initial value of X in S1, it must also read initial value in S2
+
+2. **Updated Read:** If Ti reads value of X written by Tj in S1, same must happen in S2
+
+3. **Final Write:** If Ti performs final write on X in S1, it must perform final write in S2
+
+---
+
+#### **Relationship:**
+
+```
+Conflict Serializable ⊂ View Serializable ⊂ All Schedules
+
+All conflict serializable schedules are view serializable
+But NOT all view serializable schedules are conflict serializable
+```
+
+---
+
+#### **Example: View Serializable but NOT Conflict Serializable**
+
+```
+Schedule S:
+T1: Write(A)
+T2:          Write(A)
+T3:                   Write(A)
+
+Analysis:
+- No reads, only writes
+- Final write by T3 determines result
+- View equivalent to serial schedule: T1→T2→T3
+- BUT has W-W conflicts that create cycles in precedence graph
+
+Result: VIEW SERIALIZABLE but NOT CONFLICT SERIALIZABLE
+```
+
+---
+
+#### **Comparison Table:**
+
+| **Aspect** | **Conflict Serializability** | **View Serializability** |
+|------------|------------------------------|--------------------------|
+| **Strictness** | More restrictive | Less restrictive |
+| **Testing** | Polynomial time (precedence graph) | NP-complete |
+| **Usage** | Most commonly used | Theoretical importance |
+| **Implementation** | Practical (2PL, timestamp) | Difficult to implement |
+
+---
+
+#### **Testing Methods:**
+
+**1. For Conflict Serializability:**
+```
+Algorithm:
+1. Build precedence graph
+2. Check for cycles using DFS/BFS
+3. If acyclic → Conflict serializable
+4. Topological sort gives equivalent serial order
+```
+
+**2. For View Serializability:**
+```
+- Check all possible serial schedules
+- Verify view equivalence
+- NP-complete problem (exponential time)
+```
+
+---
+
+#### **Practical Implications:**
+
+**In Practice:**
+- Most DBMS ensure **conflict serializability**
+- Protocols like 2PL guarantee conflict serializability
+- View serializability is theoretically important but rarely used
+
+**Example Protocols:**
+- **Two-Phase Locking (2PL):** Ensures conflict serializability
+- **Timestamp Ordering:** Ensures conflict serializability
+- **Optimistic CC:** Validates serializability at commit
+
+---
+
+#### **Non-Serializable Schedules:**
+
+**Problems:**
+1. **Inconsistent Results:** Different from any serial execution
+2. **Lost Updates:** Writes overwritten incorrectly
+3. **Dirty Reads:** Reading uncommitted data
+4. **Unrepeatable Reads:** Same query gives different results
+
+**Example:**
+```
+Initial: A=100, B=100
+T1: Read(A), A=A+50, Write(A)  -- A=150
+T2:                             Read(A), Read(B), Print(A+B)
+T1:                                                           Read(B), B=B+50, Write(B)
+
+T2 prints: 150+100=250 (inconsistent state!)
+Serial T1→T2: 150+150=300
+Serial T2→T1: 100+100=200
+```
+
+---
+
 ## Additional Important Topics
 
 ### Indexing
